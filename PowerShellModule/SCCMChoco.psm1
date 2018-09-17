@@ -342,9 +342,9 @@ function Add-SCCMChocoApplication
             InstallCommand = ("c:\ProgramData\chocolatey\bin\choco install {0} -y" -f $package.name )
             ScriptLanguage = "PowerShell"
             ScriptContent = 
-                '$packacgename = "'+$package.name+'" 
+                '$packacgename = "'+$package.name+'\|" 
                 try{
-                    c:\ProgramData\chocolatey\bin\choco list --local-only | ?{$_ -match $packacgename} | Out-Null
+                    c:\ProgramData\chocolatey\bin\choco list --local-only --limitoutput | ?{$_ -match $packacgename} | Out-Null
                     if($matches[0] -gt 0)
                     {
                         Write-Host "installed"
