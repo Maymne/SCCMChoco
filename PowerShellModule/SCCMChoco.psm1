@@ -277,15 +277,35 @@ function Add-SCCMChocoApplication
     catch
     {
         #this is hit when there is no icon or icon is in vector format
-        $iconfileico = $IconsDir + "\chocolatey.ico"
-        if ((-not $WhatIf) -and (-not (test-path $iconfileico)))
-        {
-            Copy-Item -Path (join-path $PSScriptRoot "chocolatey.ico") -Destination filesystem::$iconfileico -ErrorAction SilentlyContinue
-        }
+		if ((test-path $iconfilepng) -and ((get-item $iconfilepng).extension -eq ".svg") -and (test-path "C:\Program Files\InkScape\inkscape.exe"))
+		{
+			$iconfilesvg = [string](get-item $iconfilepng).directory + "\" + (get-item $iconfilepng).basename + ".png"
+			$convertcommand = "& `"C:\Program Files\InkScape\inkscape.exe`" -z -e `"$iconfilesvg`" -f `"$iconfilepng`""
+			invoke-expression $convertcommand
+			$icon = new-object System.Drawing.Bitmap($iconfilesvg); 
+			if ($icon.Width -gt 250 -or $icon.Height -gt 250)
+			{
+				$icon = new-object System.Drawing.Bitmap($icon, 250, 250)
+			}
+			if (-not $WhatIf)
+			{
+				$icon.Save($iconfileico,"Icon")
+			}
+			$icon.Dispose();
+			Write-Host " OK" -ForegroundColor Green
+		}
+		if (!(test-path $iconfileico))
+		{
+			$iconfileico = $IconsDir + "\chocolatey.ico"
+			if ((-not $WhatIf) -and (-not (test-path $iconfileico)))
+			{
+				Copy-Item -Path (join-path $PSScriptRoot "chocolatey.ico") -Destination filesystem::$iconfileico -ErrorAction SilentlyContinue
+			}
 
-        Write-Host " couldn't prepare icon, using default one:" -ForegroundColor Yellow
-        Write-Host $iconfileico -ForegroundColor Yellow
-        Write-Host "Please update icon manually using SCCM console" -ForegroundColor Yellow
+			Write-Host " couldn't prepare icon, using default one:" -ForegroundColor Yellow
+			Write-Host $iconfileico -ForegroundColor Yellow
+			Write-Host "Please update icon manually using SCCM console" -ForegroundColor Yellow
+		}
     }
     #endregion
 
